@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>PoseGuessr</title>
+
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/alertify.min.css" />
+    <!-- Default theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/default.min.css" />
+    <!-- Semantic UI theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/semantic.min.css" />
+    <!-- Bootstrap theme -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/css/themes/bootstrap.min.css" />
+    <!-- Do NOT update p5 libraries breaks the example because of p5.dom API change -->
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.2.0/lib/p5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.2.0/lib/addons/p5.sound.min.js"></script>
+    <script src="https://unpkg.com/ml5@0.6.0/dist/ml5.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
+    <script src="ml.js"></script>
+
+    <style>
+        body {
+            padding: 10px;
+            padding-left: 20px;
+            background-image: url(https://poseguessr.herokuapp.com/wall.jpg);
+            background-size: auto;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        h1 {
+            font-weight: bold;
+            font-size: 50px;
+            color: rgb(226, 226, 226);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin-top: 10px;
+        }
+
+        h2 {
+            font-weight: lighter;
+            font-size: x-large;
+            color: rgb(226, 226, 226);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        h3 {
+            font-weight: normal;
+            font-size: large;
+            color: rgb(226, 226, 226);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin-right: 600px;
+        }
+
+        h4 {
+            font-weight: bolder;
+            font-size: large;
+            color: rgb(226, 226, 226);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        input[type=file] {
+            border: 2px solid rgb(68, 137, 228);
+            border-radius: 4px;
+            padding: 5px;
+            background-color: #3CBC8D;
+            color: white;
+            font-size: medium;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        button,
+        input[type=submit] {
+            background-color: rgb(68, 137, 228);
+            border: none;
+            color: white;
+            padding: 11px 22px;
+            text-decoration: none;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            height: auto;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            font-weight: bold;
+        }
+
+        .submit1,
+        .submit2 {
+            display: inline-block;
+            /**other codes**/
+        }
+
+        .vl {
+            vertical-align: middle;
+            border-radius: 4px;
+            border-left: 6px solid;
+            height: 37px;
+            display: inline-block;
+            border-color: #3CBC8D;
+        }
+
+        button:focus {
+            background: rgb(129, 142, 167);
+        }
+
+        button:hover {
+            background: rgb(59, 83, 128);
+        }
+
+        /* The switch - the box around the slider */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        /* Hide default HTML checkbox */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        /* The slider */
+        .slider {
+            vertical-align: middle;
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 4px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #2196F3;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+
+        input:checked+.slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+
+<!-- https://www.estidia.eu/wp-content/uploads/2018/04/Savin-NY-Website-Background-Web.jpg -->
+
+<body>
+    <h1>
+        🤖 Machine Learning cu <a href="https://ml5js.org/"><b style="color: slateblue;">ml5.js</b></a>
+    </h1>
+    <h3>
+        <p>
+            Acest proiect este un web app dezvoltat cu Node.js si Express pentru partea de back-end,
+            p5.js pentru front-end si ml5.js pentru partea de machine learning.
+        </p>
+        <p>
+            Proiectul meu consta in 2 retele neuronale, primul fiind un model pre-antrenat cu milioane de
+            seturi de date numit PoseNet care poate identifica 17 puncte de pe corpul uman. Folosind informatiile
+            primite de la PoseNet, vom crea o a doua retea neuronala care va stabili ce fel de pozitie are persoana
+            din video.
+        </p>
+        <p>
+            Puteti alege intre a folosi datele si modelul predefinit sau va puteti crea propriul model si date de
+            antrenament. Mereu cand veti deschide site-ul va fi incarcat modelul predefinit si trebuie sa il schimbati
+            daca asta doriti. Pentru a reantrena modelul trebuie sa apasati mai intai pe butonul de Reseteaza Model.
+            Camera video poate fi mutata tinand apasat click stanga pe ea si miscand-o cu mouse-ul in
+            pozitia dorita.
+        </p>
+    </h3>
+
+    <h2><u>📁 Upload-ati setul dvs. de date de antrenament</u></h2>
+    <input type="file" id="dataUpload" name="filename" accept="application/json">
+    <button id="submit1">Foloseste Datele Incarcate</button>
+    <div class="vl"></div>
+    <button id="submit12">Foloseste Datele Predefinite</button>
+    <h2><u>📁 Upload-ati modelul antrenat de dvs (toate cele 3 fisiere)</u></h2>
+    <input type="file" id="modelUpload" name="filename" accept="application/json, application/octet-stream" multiple>
+    <button id="submit2">Foloseste Modelul Incarcat</button>
+    <div class="vl"></div>
+    <button id="submit22">Foloseste Modelul Predefinit</button>
+    <br><br>
+    <h2><u>💪🏻 Antrenament</u></h2>
+    <!-- <h4> 6 Output-uri </h4>
+    <label class="switch" style="vertical-align: middle; margin: 15px;">
+        <input id="checkOut" type="checkbox">
+        <span class="slider"></span>
+    </label>
+    <h4> 3 Output-uri </h4> -->
+    <button id="reset">Reseteaza Model</button>
+    <div class="vl"></div>
+    <button id="collect">Colecteaza Date</button>
+    <div class="vl"></div>
+    <button id="train">Antreneaza</button>
+    <br><br>
+    <h2><u>💾 Salvare</u></h2>
+    <button id="saveModel">Salveaza Model</button>
+    <div class="vl"></div>
+    <button id="saveData">Salveaza Date</button>
+    <br><br>
+
+</body>
+
+</html>
